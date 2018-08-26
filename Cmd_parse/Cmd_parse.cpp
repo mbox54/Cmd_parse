@@ -9,7 +9,68 @@
 #define OP_END_NULL			1
 #define OP_NULL_STR			2
 
+#define MODE_CMD_NAME		0
+#define MODE_CMD_PAR		1
+#define MODE_CMD_VAL		2
+#define MODE_CMD_PVAL		3
+
+#define MODE_CMD_SEP_PAR	0
+#define MODE_CMD_SEP_VAL	1
+
 #define MAX_STR_TAG			8
+
+
+#define CMD_COUNT			20
+
+
+struct stCommandLine
+{
+	// description
+	const char * name;
+	const char * help;
+
+	// parameters
+	BYTE ucPars_count;
+	const char * v_pars[6];
+
+	// function
+//	void(*test)(void);
+
+};
+
+static const stCommandLine mv_cmdLines[2] =
+{
+	{
+		"cmd00",
+		"cmd0_help",
+		6,
+		{ "00", "01", "02", "03", "04", "05" },
+//		cmd00
+	},
+
+	{
+		"cmd01",
+		"cmd1_help",
+		6,
+		{ "10", "11", "12", "13", "14", "15" },
+//		cmd01
+	}
+
+};
+
+void cmd00(void)
+{
+
+
+};
+
+void cmd01(void)
+{
+
+
+};
+
+
 
 // INFO:
 // function: proc line
@@ -130,70 +191,188 @@ BYTE GetStrSep(char * strParse, char * strOutput, BYTE * ucSepNum, BYTE mode)
 }
 
 
-// Main routine
-int main()
+BYTE Proc_CommandLine(char * strInput)
 {
+	BYTE ucOpState;
+	BYTE ucSepType;
+	BYTE ucOpMode;
 
-	const BYTE cucCMD_COUNT = 20;
+	char strBuf[64];
+	char strCmdName[16];
+	char strCmdPar[16];
+	char strCmdVal[32];
 
-	typedef const char * cc;
-	typedef cc v1_cc[cucCMD_COUNT];
-	typedef v1_cc v2_cc[];
+	BYTE bValidCmdLine = 0;
 
-	typedef cc cc_vector[];
+	// > Stage 1: Get Cmd Config
+	// > Get Name
+	ucOpState = GetStrSep(strInput, strBuf, &ucSepType, MODE_CMD_NAME);
 
-	struct stCommandLine
+	if (ucOpState == OP_NULL_STR)
 	{
-		// description
-		const char * name;
-		const char * help;
+		// [EMPTY CMD]
 
-		// parameters
-		BYTE ucPars_count;
-		cc v_pars[6];
-
-		// function
-		//void *test(void);
-
-	};
-
-	static const stCommandLine v_cmdLines[2] =
+		return 1;
+	}
+	else if (ucOpState == OP_END_NULL)
 	{
-		{
-			"cmd00",
-			"cmd0_help",
-			6,
-			{ "00", "01", "02", "03", "04", "05" },
-		},
+		// [CMD WITH NO VALUE]
 
+		// Set Name
+		strcpy(strCmdName, strInput);
+		// Set Mode
+		ucOpMode = MODE_CMD_NAME;
+	}
+	else if (ucOpState == OP_END_SYMB)
+	{
+		// [CMD HAS SOMETHING]
+
+		// Set Name
+		strcpy(strCmdName, strBuf);
+
+		// Shift CmdLine
+		BYTE ucPos = strlen(strBuf);
+		strcpy(strBuf, strInput + ucPos);
+
+		if (ucSepType == MODE_CMD_SEP_VAL)
 		{
-			"cmd01",
-			"cmd1_help",
-			6,
-			{ "10", "11", "12", "13", "14", "15" },
+			// [CMD WITH VALUE]
+		
+			// Set Value
+			ucOpState = GetStrSep(strBuf, strCmdVal, &ucSepType, MODE_CMD_VAL);
+
+			// check NULL
+			if (ucOpState != OP_NULL_STR)
+			{
+				// [NOT NULL]
+
+				// Set Mode
+				ucOpMode = MODE_CMD_VAL;
+			}
+			else
+			{
+				// [EMPTY CMD]
+
+				return 1;
+			}
 		}
+		else if (ucSepType == MODE_CMD_SEP_PAR)
+		{
+			// [CMD HAS PAR]
 
-	};
+			// Set Parameter
+			ucOpState = GetStrSep(strBuf, strCmdPar, &ucSepType, MODE_CMD_PAR);
+
+			// check NULL
+			if (ucOpState != OP_NULL_STR)
+			{
+				// [NOT NULL]
+
+				// check Par only clause
+				if (ucOpState == OP_END_NULL)
+				{
+					// [CMD WITH PAR ONLY]
+
+					// Set Mode
+					ucOpMode = MODE_CMD_PAR;
+				}
+				else
+				{
+					// [CMD WITH PAR AND VALUE]
+
+					// Shift CmdLine
+					BYTE ucPos = strlen(strCmdPar);
+					strcpy(strBuf, strBuf + ucPos);
+
+					// Set Value
+					ucOpState = GetStrSep(strBuf, strCmdVal, &ucSepType, MODE_CMD_VAL);
+
+					// check NULL
+					if (ucOpState != OP_NULL_STR)
+					{
+						// [NOT NULL]
+
+						// Set Mode
+						ucOpMode = MODE_CMD_PVAL;
+					}
+					else
+					{
+						// [EMPTY CMD]
+
+						return 1;
+					}
+				}//check Par only clause
+			}
+			else
+			{
+				// [EMPTY CMD]
+
+				return 1;
+			}
+		}//[CMD HAS PAR]
+	}//[CMD HAS SOMETHING]
 
 
-	v2_cc v_values =
+	// > Stage 2: Check Cmd Config
+	BYTE ucCmdName;
+	BYTE ucCmdPar;
+
+	// check Cmd Valid Name
+	for (BYTE k = 0; k < CMD_COUNT; k++)
 	{
-		{ "00", "01", "02", "03", "04", "05" },
-		{ "10", "11", "12", "13", "14", "15" },
-		{ "20", "21", "22", "23", "24", "25" },
-		{ "30", "31", "32", "33", "34", "35" },
-		{ "40" },
-		{ "50" }
-	};
+		if ((strcmp(strInput, mv_cmdLines[k].name)) == 0)
+		{
+			// set Cmd Config
+			ucCmdName = k;
+			bValidCmdLine = 1;
+
+			break;
+		}
+	}
 
 
-	const char * str1 = v_values[5][0];
-
-	//Trace(_T("start\n"));
-	//Trace(_T("%c \n"), str1);
+	return 0;
+}
 
 
-    return 0;
+
+// Main routine
+//////////////////////////////////////////////////////////////////////
+// Main routine
+//////////////////////////////////////////////////////////////////////
+int main(int argc, char * argv[])
+{
+	// > Output Common Info
+	printf("Wellcome to the CommandParser! [ver 1.0] \n\n");
+
+	// > Output Parameters
+	printf("Used parameters:\n");
+	printf("- executed from: %s\n", argv[0]);
+
+	if (argc > 1)
+	{
+		// [PARAMS EXISTS]
+		// output Values
+		for (int k = 0; k < argc; k++)
+		{
+			printf("- parameter %d: %s\n", k, argv[k]);
+		}
+	}
+	else
+	{
+		// [NO PARAMS]
+		// output Status
+		printf("[command line has no additional arguments]\n");
+	}
+
+
+
+	// > End of program
+	// wait any key press
+	printf("\n %s \n", "Press any key to exit...");
+	getchar();
+
+	return 0;
 }
 
 
