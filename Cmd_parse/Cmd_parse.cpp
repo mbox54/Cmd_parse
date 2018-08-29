@@ -1,8 +1,11 @@
 // Cmd_parse.cpp : Defines the entry point for the console application.
 //
+// NOTE:
+// _CRT_SECURE_NO_WARNINGS
 
 #include "stdafx.h"
 #include "string.h"
+#include <stdio.h>
 
 
 #define OP_END_SYMB			0
@@ -366,13 +369,45 @@ int main(int argc, char * argv[])
 	}
 
 
+	// > Proceed commands
+	BYTE act = 1;
+	while (act)
+	{
+		// Define OP Cycle
+		printf("\n %s \n %s \n", "- Press 'C' to input command line.", "- Press 'X' to exit.");
 
-	// > End of program
-	// wait any key press
-	printf("\n %s \n", "Press any key to exit...");
-	getchar();
+		char c = getchar();
+		if ((c == 'x') || (c == 'X'))
+		{
+			// [EXIT]			
+
+			printf("Press any key to exit... \n");
+			getchar();
+			getchar();
+
+			// exit cmp proc
+			act = 0;			
+
+		}
+		else if ((c == 'c') || (c == 'C'))
+		{
+			// [CMD CYCLE]
+
+			// input command line OP
+			printf("input command line: \n");
+			getchar();
+
+			char strCmdLine[25];
+			gets_s(strCmdLine);
+			printf("%s \n", strCmdLine);
+
+			//fget(strCmdLine[64]);
+		}
+	}	
+
 
 	return 0;
 }
+
 
 
