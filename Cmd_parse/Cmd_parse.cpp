@@ -23,7 +23,7 @@
 #define MAX_STR_TAG			8
 
 
-#define CMD_COUNT			20
+#define CMD_COUNT			2
 
 
 struct stCommandLine
@@ -47,7 +47,7 @@ static const stCommandLine mv_cmdLines[2] =
 		"cmd00",
 		"cmd0_help",
 		6,
-		{ "00", "01", "02", "03", "04", "05" },
+		{ "abc00", "def01", "02", "03", "04", "05" },
 //		cmd00
 	},
 
@@ -55,7 +55,7 @@ static const stCommandLine mv_cmdLines[2] =
 		"cmd01",
 		"cmd1_help",
 		6,
-		{ "10", "11", "12", "13", "14", "15" },
+		{ "abc10", "def11", "12", "13", "14", "15" },
 //		cmd01
 	}
 
@@ -173,6 +173,9 @@ BYTE GetStrSep(char * strParse, char * strOutput, BYTE * ucSepNum, BYTE mode)
 					// activate stop search op
 					ucSepNumber = v_mode[mode].ucCount;
 				}
+				
+				ucSepNumber++;
+
 			}//while ucSepNum
 
 			// next symbol
@@ -182,12 +185,12 @@ BYTE GetStrSep(char * strParse, char * strOutput, BYTE * ucSepNum, BYTE mode)
 	}//while (act != 0)
 
 	// > Form Output String /tag/
-	for (BYTE kk = 0; kk <= ucEndPos; kk++)
+	for (BYTE kk = 0; kk < ucEndPos; kk++)
 	{
 		strOutput[kk] = strParse[kk];
 	}
 
-	strOutput[ucEndPos + 1] = '\0';
+	strOutput[ucEndPos] = '\0';
 
 
 	return OP_END_SYMB;
@@ -234,7 +237,7 @@ BYTE Proc_CommandLine(char * strInput)
 
 		// Shift CmdLine
 		BYTE ucPos = strlen(strBuf);
-		strcpy(strBuf, strInput + ucPos);
+		strcpy(strBuf, strInput + ucPos + 1);
 
 		if (ucSepType == MODE_CMD_SEP_VAL)
 		{
@@ -284,7 +287,7 @@ BYTE Proc_CommandLine(char * strInput)
 
 					// Shift CmdLine
 					BYTE ucPos = strlen(strCmdPar);
-					strcpy(strBuf, strBuf + ucPos);
+					strcpy(strBuf, strBuf + ucPos + 1);
 
 					// Set Value
 					ucOpState = GetStrSep(strBuf, strCmdVal, &ucSepType, MODE_CMD_VAL);
@@ -294,12 +297,15 @@ BYTE Proc_CommandLine(char * strInput)
 					{
 						// [NOT NULL]
 
+						// Set Value
+						strcpy(strCmdVal, strBuf);
+
 						// Set Mode
 						ucOpMode = MODE_CMD_PVAL;
 					}
 					else
 					{
-						// [EMPTY CMD]
+						// [EMPTY FRAGMENT]
 
 						return 1;
 					}
@@ -307,24 +313,28 @@ BYTE Proc_CommandLine(char * strInput)
 			}
 			else
 			{
-				// [EMPTY CMD]
+				// [EMPTY FRAGMENT]
 
 				return 1;
 			}
 		}//[CMD HAS PAR]
 	}//[CMD HAS SOMETHING]
 
+	//!debug
+	printf("Nam = %s \n", strCmdName);
+	printf("Par = %s \n", strCmdPar);
+	printf("Val = %s \n", strCmdVal);
+
 
 	// > Stage 2: Check Cmd Config
 	BYTE ucCmdName;
 	BYTE ucCmdPar;
 
-	BYTE bValidCmdLine = 0;
-
 	// check Cmd Valid Name
+	BYTE bValidCmdLine = 0;
 	for (BYTE k = 0; k < CMD_COUNT; k++)
 	{
-		if ((strcmp(strInput, mv_cmdLines[k].name)) == 0)
+		if ((strcmp(strCmdName, mv_cmdLines[k].name)) == 0)
 		{
 			// set Cmd Config
 			ucCmdName = k;
@@ -343,9 +353,10 @@ BYTE Proc_CommandLine(char * strInput)
 		{
 			// [HAVE PAR]
 
+			bValidCmdLine = 0;
 			for (BYTE k = 0; k < CMD_COUNT; k++)
 			{
-				if ((strcmp(strInput, mv_cmdLines[ucCmdName].v_pars[k])) == 0)
+				if ((strcmp(strCmdPar, mv_cmdLines[ucCmdName].v_pars[k])) == 0)
 				{
 					// set Cmd Config
 					ucCmdPar = k;
@@ -389,30 +400,10 @@ BYTE Proc_CommandLine(char * strInput)
 	if (bValidCmdLine)
 	{
 		// [VALID]
+		// execute specific Command
+		mv_cmdLines[ucCmdName].ucPars_count;
 
-		// case Mode
-		//
-		if (ucOpMode == MODE_CMD_NAME)
-		{
-			// [FORMAT: CMD]
-
-		}
-		else if (ucOpMode == MODE_CMD_NAME)
-		{
-
-		}
-		else if (ucOpMode == MODE_CMD_NAME)
-		{
-
-		}
-		else if (ucOpMode == MODE_CMD_NAME)
-		{
-
-		}
-		else if (ucOpMode == MODE_CMD_NAME)
-		{
-
-		}
+		printf("valid command. \n");
 	}
 	else
 	{
@@ -421,7 +412,7 @@ BYTE Proc_CommandLine(char * strInput)
 		return 2;
 	}
 
-
+	// success
 	return 0;
 }
 
@@ -469,7 +460,7 @@ int main(int argc, char * argv[])
 		{
 			// [EXIT]			
 
-			printf("Press any key to exit... \n");
+			printf("Press any key to exit... ");
 			getchar();
 			getchar();
 
