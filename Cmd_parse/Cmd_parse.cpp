@@ -204,8 +204,7 @@ BYTE Proc_CommandLine(char * strInput)
 	char strCmdName[16];
 	char strCmdPar[16];
 	char strCmdVal[32];
-
-	BYTE bValidCmdLine = 0;
+	
 
 	// > Stage 1: Get Cmd Config
 	// > Get Name
@@ -320,6 +319,8 @@ BYTE Proc_CommandLine(char * strInput)
 	BYTE ucCmdName;
 	BYTE ucCmdPar;
 
+	BYTE bValidCmdLine = 0;
+
 	// check Cmd Valid Name
 	for (BYTE k = 0; k < CMD_COUNT; k++)
 	{
@@ -331,6 +332,93 @@ BYTE Proc_CommandLine(char * strInput)
 
 			break;
 		}
+	}
+
+	if (bValidCmdLine)
+	{
+		// [VALID]
+
+		// check existing parameters: PARAMETER
+		if ((ucOpMode == MODE_CMD_PAR) || (ucOpMode == MODE_CMD_PVAL))
+		{
+			// [HAVE PAR]
+
+			for (BYTE k = 0; k < CMD_COUNT; k++)
+			{
+				if ((strcmp(strInput, mv_cmdLines[ucCmdName].v_pars[k])) == 0)
+				{
+					// set Cmd Config
+					ucCmdPar = k;
+					bValidCmdLine = 1;
+
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		// [BAD NAME]
+
+		return 2;
+	}
+
+	if (bValidCmdLine)
+	{
+		// [VALID]
+
+		// check existing parameters: VALUE
+		if ((ucOpMode == MODE_CMD_VAL) || (ucOpMode == MODE_CMD_PVAL))
+		{
+			// [HAVE VAL]
+
+			// specific actions
+			// .. 
+			bValidCmdLine = 1;
+		}
+	}
+	else
+	{
+		// [BAD PAR]
+
+		return 2;
+	}
+
+
+	// > Stage 3: Execute
+	if (bValidCmdLine)
+	{
+		// [VALID]
+
+		// case Mode
+		//
+		if (ucOpMode == MODE_CMD_NAME)
+		{
+			// [FORMAT: CMD]
+
+		}
+		else if (ucOpMode == MODE_CMD_NAME)
+		{
+
+		}
+		else if (ucOpMode == MODE_CMD_NAME)
+		{
+
+		}
+		else if (ucOpMode == MODE_CMD_NAME)
+		{
+
+		}
+		else if (ucOpMode == MODE_CMD_NAME)
+		{
+
+		}
+	}
+	else
+	{
+		// [BAD VAL]
+
+		return 2;
 	}
 
 
@@ -397,9 +485,14 @@ int main(int argc, char * argv[])
 			printf("input command line: \n");
 			getchar();
 
-			char strCmdLine[25];
+			char strCmdLine[64];
 			gets_s(strCmdLine);
-			printf("%s \n", strCmdLine);
+			//printf("%s \n", strCmdLine);
+
+			// parse command
+			Proc_CommandLine(strCmdLine);
+
+
 
 			//fget(strCmdLine[64]);
 		}
