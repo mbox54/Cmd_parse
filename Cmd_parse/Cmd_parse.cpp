@@ -251,6 +251,9 @@ BYTE Proc_CommandLine(char * strInput)
 			{
 				// [NOT NULL]
 
+				// Set Value
+				strcpy(strCmdVal, strBuf);
+
 				// Set Mode
 				ucOpMode = MODE_CMD_VAL;
 			}
@@ -277,6 +280,9 @@ BYTE Proc_CommandLine(char * strInput)
 				if (ucOpState == OP_END_NULL)
 				{
 					// [CMD WITH PAR ONLY]
+
+					// Set Param
+					strcpy(strCmdPar, strBuf);
 
 					// Set Mode
 					ucOpMode = MODE_CMD_PAR;
@@ -482,8 +488,6 @@ int main(int argc, char * argv[])
 
 			// parse command
 			Proc_CommandLine(strCmdLine);
-
-
 
 			//fget(strCmdLine[64]);
 		}
